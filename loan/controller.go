@@ -337,6 +337,61 @@ func BroadcastNode(newNode string, nodes []string) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Consensus GET /consensus
+// find for longest chain in network and if current node chain was shorter replace it with the longest
+func (c *Controller) Consensus(w http.ResponseWriter, r *http.Request) {
+	maxChainLength := 0
+	var longestChain *Blockchain
+	var resp ResponseToSend
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	for _, node := range c.blockchain.NetworkNodes {
+		if node != c.currentNodeURL {
+			// call /blockchain in node
+			// call url in node
+			req, err := http.NewRequest("GET", node+"/blockchain", nil)
+			req.Header.Set("Content-Type", "application/json")
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Println("Error retrieving blockchain")
+				log.Println(err)
+			}
+			defer resp.Body.Close()
+			respBody, err := ioutil.ReadAll(resp.Body)
+			var chain *Blockchain
+			if err := json.Unmarshal(respBody, &chain); err != nil { // unmarshal body contents as a type Candidate
+				if err != nil {
+					log.Fatalln("Error unmarshalling data", err)
+				}
+			}
+
+			if chain != nil {
+				chainLength := len(chain.Chain)
+				if maxChainLength < chainLength {
+					maxChainLength = chainLength
+					longestChain = chain
+				}
+			}
+		}
+	}
+
+	log.Println(longestChain.ChainIsValid())
+
+	if maxChainLength > len(c.blockchain.Chain) && longestChain.ChainIsValid() {
+		c.blockchain.Chain = longestChain.Chain
+		c.blockchain.PendingLoans = longestChain.PendingLoans
+		resp.Note = "This chain has been replaced."
+	} else {
+		resp.Note = "This chain has not been replaced."
+	}
+
+	w.WriteHeader(http.StatusOK)
+	data, _ := json.Marshal(resp)
+	w.Write(data)
+	return
+}
+
 //GetLoansForUser GET /user/{userName}
 func (c *Controller) GetLoansForUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
