@@ -20,3 +20,18 @@ type Block struct {
 	PreviousBlockHash string `json:"previousBlockHash"`
 }
 
+//Blocks is an array of Block
+type Blocks []Block
+
+//Blockchain :
+type Blockchain struct {
+	Chain        Blocks   `json:"chain"`
+	PendingLoans Loans    `json:"pending_loans"`
+	NetworkNodes []string `json:"network_nodes"`
+}
+
+//BlockData is used in hash calculations
+type BlockData struct {
+	Index string
+	Loans Loans
+}
