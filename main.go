@@ -11,8 +11,8 @@ func main() {
 	port := os.Args[1] // inputted port
 	//router := bet.NewRouter(address)
 
-	//allowedOrigins := handlers.AllowedOrigins([]string{"*"})
-	//allowedMethods := handlers.AllowedMethods([]string{"GET", "POST"})
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST"})
 
 	// launch server
 	log.Fatal(http.ListenAndServe(":"+port,
