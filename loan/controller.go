@@ -237,11 +237,108 @@ func (c *Controller) ReceiveNewBlock(w http.ResponseWriter, r *http.Request) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////// RegisterNode part :
+//RegisterAndBroadcastNode POST /register-and-broadcast-node
+func (c *Controller) RegisterAndBroadcastNode(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body) // read the body of the request
+	if err != nil {
+		log.Fatalln("Error RegisterNode", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err := r.Body.Close(); err != nil {
+		log.Fatalln("Error RegisterNode", err)
+	}
+	var node struct {
+		NewNodeURL string `json:"newnodeurl"`
+	}
+	if err := json.Unmarshal(body, &node); err != nil { // unmarshall body contents as a type Candidate
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Fatalln("Error RegisterNode unmarshalling data", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var resp ResponseToSend
+	success := c.blockchain.RegisterNode(node.NewNodeURL) // registers the node into the blockchain
+	if !success {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// broadcast
+	BroadcastNode(node.NewNodeURL, c.blockchain.NetworkNodes)
+
+	// register all nodes in new node
+	allNodes := append(c.blockchain.NetworkNodes, c.currentNodeURL)
+	payload, err := json.Marshal(allNodes)
+	registerBulkJSON := []byte(payload)
+	MakePostCall(node.NewNodeURL+"/register-nodes-bulk", registerBulkJSON)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	resp.Note = "Node registered successfully."
+	data, _ := json.Marshal(resp)
+	w.Write(data)
+	return
+}
+
+//RegisterNode POST /register-node
+func (c *Controller) RegisterNode(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body) // read the body of the request
+	if err != nil {
+		log.Fatalln("Error RegisterNode", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err := r.Body.Close(); err != nil {
+		log.Fatalln("Error RegisterNode", err)
+	}
+	var node struct {
+		NewNodeURL string `json:"newNodeUrl"`
+	}
+	if err := json.Unmarshal(body, &node); err != nil { // unmarshall body contents as a type Candidate
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Fatalln("Error RegisterNode unmarshalling data", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	var resp ResponseToSend
+	if node.NewNodeURL != c.currentNodeURL {
+		success := c.blockchain.RegisterNode(node.NewNodeURL) // registers the node into the blockchain
+		if !success {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	resp.Note = "Node registered successfully."
+	data, _ := json.Marshal(resp)
+	w.Write(data)
+	return
+}
+
+//BroadcastNode broadcasting node
+func BroadcastNode(newNode string, nodes []string) {
+	for _, node := range nodes {
+		if node != newNode {
+			var registerNodesJSON = []byte(`{"newnodeurl":"` + newNode + `"}`)
+			// call /register-node in node
+			MakePostCall(node+"/register-node", registerNodesJSON)
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //GetLoansForUser GET /user/{userName}
-func (c *Controller) GetBetsForPlayer(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetLoansForUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userName := strings.ToLower(vars["playerName"])
 
