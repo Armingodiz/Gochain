@@ -60,3 +60,25 @@ func (b *Blockchain) HashBlock(previousBlockHash string, currentBlockData string
 	hashed := base64.URLEncoding.EncodeToString(h.Sum(nil))
 	return hashed
 }
+
+//CheckNewBlockHash checks block validation by checking previous block hash and its index in chain :
+
+func (b *Blockchain) CheckNewBlockHash(newBlock Block) bool {
+	lastBlock := b.GetLastBlock()
+	correctHash := lastBlock.Hash == newBlock.PreviousBlockHash
+	correctIndex := (lastBlock.Index + 1) == newBlock.Index
+
+	return (correctHash && correctIndex)
+}
+
+//ProofOfWork consists of finding a nonce (an integer in our case) that, combined with all the other data in the block, will return a hash code which begins with “0000”.
+func (b *Blockchain) ProofOfWork(previousBlockHash string, currentBlockData string) int {
+	nonce := -1
+	inputFmt := ""
+	for inputFmt != "0000" {
+		nonce = nonce + 1
+		hash := b.HashBlock(previousBlockHash, currentBlockData, nonce)
+		inputFmt = hash[0:4]
+	}
+	return nonce
+}

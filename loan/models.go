@@ -15,7 +15,7 @@ type Block struct {
 	Index             int    `json:"index"`
 	Timestamp         int64  `json:"timestamp"`
 	Loans             Loans  `json:"loans"`
-	Nonce             int    `json:"nonce"`
+	Nonce             int    `json:"nonce"` // will be used for mining
 	Hash              string `json:"hash"`
 	PreviousBlockHash string `json:"previousBlockHash"`
 }
