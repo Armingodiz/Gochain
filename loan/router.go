@@ -17,3 +17,78 @@ type Route struct {
 	Pattern     string
 	HandlerFunc http.HandlerFunc
 }
+
+// Routes defines the list of routes of our API
+type Routes []Route
+
+var routes = Routes{
+	Route{
+		"Index",
+		"GET",
+		"/",
+		controller.Index,
+	},
+	Route{
+		"GetBlockchain",
+		"GET",
+		"/blockchain",
+		controller.GetBlockchain,
+	},
+	Route{
+		"RegisterAndBroadcastNode",
+		"POST",
+		"/register-and-broadcast-node",
+		controller.RegisterAndBroadcastNode,
+	},
+	Route{
+		"RegisterNode",
+		"POST",
+		"/register-node",
+		controller.RegisterNode,
+	},
+	Route{
+		"RegisterNodesBulk",
+		"POST",
+		"/register-nodes-bulk",
+		controller.RegisterNodesBulk,
+	},
+	/*
+		will pass all the current nodes of the network to the new node, so they it will also have them in its internal list of nodes
+	*/
+	Route{
+		"RegisterLoan",
+		"POST",
+		"/loan",
+		controller.RegisterLoan,
+	},
+	Route{
+		"RegisterAndBroadcastLoan",
+		"POST",
+		"/loan/broadcast",
+		controller.RegisterAndBroadcastLoan,
+	},
+	Route{
+		"Mine",
+		"GET",
+		"/mine",
+		controller.Mine,
+	},
+	Route{
+		"ReceiveNewBlock",
+		"POST",
+		"/receive-new-block",
+		controller.ReceiveNewBlock,
+	},
+	Route{
+		"Consensus",
+		"GET",
+		"/consensus",
+		controller.Consensus,
+	},
+	Route{
+		"GetLoansForUser",
+		"GET",
+		"/user/{playerName}",
+		controller.GetLoansForUser,
+	},
+}
