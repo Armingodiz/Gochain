@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 //Controller :
@@ -82,7 +84,7 @@ func MakeGetCall(url string, jsonStr []byte) interface{} {
 
 ///////////////////////////////////////////////////////////////////////////////////////// Adding new loan :
 
-//RegisterAndBroadcastBet POST /loan/broadcast
+//RegisterAndBroadcastLoan POST /loan/broadcast
 func (c *Controller) RegisterAndBroadcastLoan(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body) // read the body of the request
 	errMessage := "Error RegisterLoan"
@@ -104,7 +106,7 @@ func (c *Controller) RegisterAndBroadcastLoan(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	success := c.blockchain.RegisterLoan(loan) // registers the bet into the blockchain
+	success := c.blockchain.RegisterLoan(loan) // registers the loan into the blockchain
 	if !success {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -126,7 +128,7 @@ func (c *Controller) RegisterAndBroadcastLoan(w http.ResponseWriter, r *http.Req
 	w.Write(data)
 }
 
-//RegisterBet POST /bet
+//RegisterLoan POST /loan
 func (c *Controller) RegisterLoan(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body) // read the body of the request
 	errMessage := "Error RegisterLoan"
@@ -234,3 +236,18 @@ func (c *Controller) ReceiveNewBlock(w http.ResponseWriter, r *http.Request) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//GetLoansForUser GET /user/{userName}
+func (c *Controller) GetBetsForPlayer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userName := strings.ToLower(vars["playerName"])
+
+	loans := c.blockchain.GetLoansForUser(userName)
+	w.WriteHeader(http.StatusOK)
+	data, _ := json.Marshal(loans)
+	w.Write(data)
+	return
+}

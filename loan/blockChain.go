@@ -116,7 +116,7 @@ func (b *Blockchain) ChainIsValid() bool {
 }
 
 //GetLoansForUser :
-func (b *Blockchain) GetBetsForPlayer(userName string) Loans {
+func (b *Blockchain) GetLoansForUser(userName string) Loans {
 	userLoans := Loans{}
 	i := 0
 	chainLength := len(b.Chain)
