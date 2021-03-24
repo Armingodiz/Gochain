@@ -1,6 +1,9 @@
 package loan
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -47,4 +50,13 @@ func (b *Blockchain) CreateNewBlock(nonce int, previousBlockHash string, hash st
 //GetLastBlock
 func (b *Blockchain) GetLastBlock() Block {
 	return b.Chain[len(b.Chain)-1]
+}
+
+//HashBlock Create hash id for block base on previous block , data and nonce of block
+func (b *Blockchain) HashBlock(previousBlockHash string, currentBlockData string, nonce int) string {
+	h := sha256.New()
+	strToHash := previousBlockHash + currentBlockData + strconv.Itoa(nonce)
+	h.Write([]byte(strToHash))
+	hashed := base64.URLEncoding.EncodeToString(h.Sum(nil))
+	return hashed
 }
