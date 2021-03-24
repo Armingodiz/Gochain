@@ -3,6 +3,7 @@ package loan
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -81,4 +82,57 @@ func (b *Blockchain) ProofOfWork(previousBlockHash string, currentBlockData stri
 		inputFmt = hash[0:4]
 	}
 	return nonce
+}
+
+//ChainIsValid Used by consensus algorithm
+func (b *Blockchain) ChainIsValid() bool {
+	i := 1
+	for i < len(b.Chain) {
+		currentBlock := b.Chain[i]
+		prevBlock := b.Chain[i-1]
+		currentBlockData := BlockData{Index: strconv.Itoa(prevBlock.Index - 1), Loans: currentBlock.Loans}
+		currentBlockDataAsByteArray, _ := json.Marshal(currentBlockData)
+		currentBlockDataAsStr := base64.URLEncoding.EncodeToString(currentBlockDataAsByteArray)
+		blockHash := b.HashBlock(prevBlock.Hash, currentBlockDataAsStr, currentBlock.Nonce)
+
+		if blockHash[0:4] != "0000" {
+			return false
+		}
+
+		if currentBlock.PreviousBlockHash != prevBlock.Hash {
+			return false
+		}
+
+		i = i + 1
+	}
+
+	genesisBlock := b.Chain[0]
+	correctNonce := genesisBlock.Nonce == 100
+	correctPreviousBlockHash := genesisBlock.PreviousBlockHash == "0"
+	correctHash := genesisBlock.Hash == "0"
+	correctBets := len(genesisBlock.Loans) == 0
+
+	return correctNonce && correctPreviousBlockHash && correctHash && correctBets
+}
+
+//GetLoansForUser :
+func (b *Blockchain) GetBetsForPlayer(userName string) Loans {
+	userLoans := Loans{}
+	i := 0
+	chainLength := len(b.Chain)
+	for i < chainLength {
+		block := b.Chain[i]
+		loansInBlock := block.Loans
+		j := 0
+		loansLength := len(loansInBlock)
+		for j < loansLength {
+			loan := loansInBlock[j]
+			if loan.Name == userName {
+				userLoans = append(userLoans, loan)
+			}
+			j = j + 1
+		}
+		i = i + 1
+	}
+	return userLoans
 }
