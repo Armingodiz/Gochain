@@ -1,7 +1,8 @@
 package loan
 
-//Controller ...
+//Controller :
 type Controller struct {
 	blockchain     *Blockchain
 	currentNodeURL string
 }
+
