@@ -1,6 +1,7 @@
 package loan
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -34,6 +35,46 @@ func (c *Controller) GetBlockchain(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 	return
 }
+/////////////////////////////////////////////////////////////////// Making calls for broadcasting part
+//MakeCall :
+func MakeCall(mode string, url string, jsonStr []byte) interface{} {
+	// call url in node
+	log.Println(mode)
+	log.Println(url)
+	req, err := http.NewRequest(mode, url, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error in call " + url)
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	var returnValue interface{}
+	if err := json.Unmarshal(respBody, &returnValue); err != nil { // unmarshal body contents as a type Candidate
+		if err != nil {
+			log.Fatalln("Error "+url+" unmarshalling data", err)
+			return nil
+		}
+	}
+	log.Println(returnValue)
+	return returnValue
+}
+
+//MakePostCall
+func MakePostCall(url string, jsonStr []byte) {
+	// call url in POST
+	MakeCall("POST", url, jsonStr)
+}
+
+//MakeGetCall
+func MakeGetCall(url string, jsonStr []byte) interface{} {
+	// call url in GET
+	return MakeCall("GET", url, jsonStr)
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////// Adding new loan :
 
