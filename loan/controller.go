@@ -335,6 +335,46 @@ func BroadcastNode(newNode string, nodes []string) {
 	}
 }
 
+//RegisterNodesBulk POST /register-nodes-bulk
+// add all other nodes in network to new node nodes 
+func (c *Controller) RegisterNodesBulk(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body) // read the body of the request
+	if err != nil {
+		log.Fatalln("Error RegisterNodesBulk", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err := r.Body.Close(); err != nil {
+		log.Fatalln("Error RegisterNodesBulk", err)
+	}
+	var allNodes []string
+	if err := json.Unmarshal(body, &allNodes); err != nil { // unmarshall body contents as a type Candidate
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			log.Fatalln("Error RegisterNodesBulk unmarshalling data", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	for _, node := range allNodes {
+		if node != c.currentNodeURL {
+			success := c.blockchain.RegisterNode(node) // registers the node into the blockchain
+			if !success {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+	var resp ResponseToSend
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	resp.Note = "Bulk registration successful."
+	data, _ := json.Marshal(resp)
+	w.Write(data)
+	return
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Consensus GET /consensus
