@@ -3,7 +3,7 @@ simple bank system for holding loans using blockchain
 
 # Installation
 After cloning repo you can run `go run main.go "port"` . Your node will be listenning on localhost:port (each node can be considered as a Bank branch).
-If you want your other nodes to be connected to the same network you must use RegisterAndBroadcastNode endpoint to send one of current nodes in network .
+If you want your other nodes to be connected to the same network you must use RegisterAndBroadcastNode endpoint to send one of current nodes in network in your post request.
 
 ## Dependencies
 name     | repo
