@@ -14,7 +14,7 @@ name     | repo
 	Index  	       	          ,method = GET  	,path = "/"
 	GetBlockchain 		  ,method = GET  	,path = "/blockchain"
 	RegisterAndBroadcastLoan  ,method = POST  	,path = "/loan/broadcast"
-	RegisterAndBroadcastNode  ,method = POST  	,path = "/register-and-broadcast-node"( the new node url => `json:"newnodeurl"`)
+	RegisterAndBroadcastNode  ,method = POST  	,path = "/register-and-broadcast-node"(`json:"newnodeurl"`)
 	GetLoansForUser  	  ,method = GET  	,path = /user/{userName}
 	Mine  			  ,method = GET  	,path = "/mine"
 	Consensus  		  ,method = GET  	,path = "/consensus"
